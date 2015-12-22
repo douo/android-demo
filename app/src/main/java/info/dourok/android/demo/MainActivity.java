@@ -16,8 +16,6 @@
 
 package info.dourok.android.demo;
 
-import java.util.Locale;
-
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -40,6 +38,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import java.util.Locale;
 
 import info.dourok.android.demo.services.ServiceDemo;
 
@@ -83,7 +83,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Intent i = new Intent(this, ServiceDemo.class);
         i.setData(Uri.parse("http://dourok.info/demo"));
         i.setAction("Test");

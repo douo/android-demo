@@ -1,8 +1,8 @@
 package info.dourok.android.demo.coordinate;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.Parcelable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v4.view.WindowInsetsCompat;
@@ -12,17 +12,27 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
-import java.util.jar.Attributes;
+import java.lang.annotation.Annotation;
 
 import info.dourok.android.demo.R;
+import info.dourok.android.demo.annotation.AnnotationDemo;
 
+
+@AnnotationDemo(CoordinatorDemoActivity.class)
 public class CoordinatorDemoActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coordinator_demo);
+        int i = getResources().getIdentifier("colorControlActivated", "attr", getPackageName());
+        int j = android.support.v7.appcompat.R.attr.colorControlActivated;
+        System.out.println(i + ":" + j);
 
+        System.out.println("length:" + getClass().getAnnotations().length);
+        for (Annotation annotation : this.getClass().getAnnotations()) {
+            System.out.println(annotation.toString());
+        }
     }
 
 
