@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+}
+
+compileJava {
+    //options.verbose = true
+    //options.compilerArgs.add("-processor com.example.DemoProcessor")
+    //options.compilerArgs.add("-Xprint")
+    options.compilerArgs.add("-XprintRounds")
+    //options.compilerArgs.add("-XprintProcessorInfo")
+
+    println options.compilerArgs
+}
