@@ -121,4 +121,5 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="title_activity_coordinator_demo">CoordinatorDemoActivity</string>
+    <string name="title_activity_color_button_normal_bug">ColorButtonNormalBugActivity</string>
 </resources>

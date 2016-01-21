@@ -48,4 +48,23 @@
     </style>
 
 
+    <!-- Base application theme. -->
+    <style name="ColorButtonNormalBug" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorButtonNormal">#F0F000</item>
+    </style>
+
+
+    <style name="ColorButtonNormalBugOverlay" parent="ThemeOverlay.AppCompat.Light">
+        <item name="colorAccent">#00FF00</item>
+        <item name="colorButtonNormal">#FF0000</item>
+    </style>
+
+    <style name="ColorButtonNormalBugButton" parent="Widget.AppCompat.Button.Colored">
+        <item name="colorButtonNormal">#FF00FF</item>
+    </style>
+
 </resources>
