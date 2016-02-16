@@ -1,14 +1,13 @@
 package info.dourok.android.demo.coordinate;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by John on 2015/10/17.
