@@ -122,4 +122,7 @@
     </string>
     <string name="title_activity_coordinator_demo">CoordinatorDemoActivity</string>
     <string name="title_activity_color_button_normal_bug">ColorButtonNormalBugActivity</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

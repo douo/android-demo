@@ -26,13 +26,15 @@
         <activity
             android:name=".bug.ColorButtonNormalBugActivity"
             android:label="@string/title_activity_color_button_normal_bug"
-            android:theme="@style/ColorButtonNormalBug">
+            android:theme="@style/ColorButtonNormalBug"></activity>
+        <activity android:name=".savestate.SaveStateDemoActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".savestate.SaveStateDemoFragmentActivity"></activity>
     </application>
 
 </manifest>
