@@ -17,16 +17,14 @@
 
         <activity
             android:name=".coordinate.ScrollingActivity"
-            android:label="@string/title_activity_scrolling"></activity>
+            android:label="@string/title_activity_scrolling" />
         <activity
             android:name=".coordinate.CoordinatorDemoActivity"
-            android:label="@string/title_activity_coordinator_demo">
-
-        </activity>
+            android:label="@string/title_activity_coordinator_demo"></activity>
         <activity
             android:name=".bug.ColorButtonNormalBugActivity"
             android:label="@string/title_activity_color_button_normal_bug"
-            android:theme="@style/ColorButtonNormalBug"></activity>
+            android:theme="@style/ColorButtonNormalBug" />
         <activity android:name=".savestate.SaveStateDemoActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,7 +32,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".savestate.SaveStateDemoFragmentActivity"></activity>
+        <activity android:name=".savestate.SaveStateDemoFragmentActivity" />
+        <activity android:name=".savestate.FragmentStateDemoActivity"></activity>
     </application>
 
 </manifest>

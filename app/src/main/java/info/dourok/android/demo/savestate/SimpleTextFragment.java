@@ -12,12 +12,14 @@ import android.widget.TextView;
 import java.util.Random;
 
 import info.dourok.android.demo.BaseFragment;
+import info.dourok.android.demo.LogUtils;
 import info.dourok.android.demo.R;
 
 public class SimpleTextFragment extends BaseFragment {
 
     Button button;
     TextView textView;
+    TextView hashView;
     int rand;
 
     public SimpleTextFragment() {
@@ -39,9 +41,9 @@ public class SimpleTextFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+        super.onCreateView(inflater, container, savedInstanceState);
         View v = inflater.inflate(R.layout.fragment_simple_text, container, false);
-        button = (Button) v.findViewById(R.id.button);
+        button = (Button) v.findViewById(R.id.toggle);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -57,9 +59,11 @@ public class SimpleTextFragment extends BaseFragment {
         } else {
             rand = savedInstanceState.getInt("rand");
         }
+
+        hashView = (TextView) v.findViewById(R.id.hash);
+        hashView.setText(String.format("0x%X", hash));
         return v;
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -72,8 +76,16 @@ public class SimpleTextFragment extends BaseFragment {
     }
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        d("" + getSavedViewState());
+    }
+
+    @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
+        d(LogUtils.debugBundle(savedInstanceState));
+        d("textView：" + textView.getText()); // 此时 savedInstanceState 的数据还未恢复到 View 中
     }
 
     @Override

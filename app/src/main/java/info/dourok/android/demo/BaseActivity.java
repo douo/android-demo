@@ -26,49 +26,49 @@ public abstract class BaseActivity extends
         if (savedInstanceState == null) {
             d("savedInstanceState: null");
         } else {
-            d(debugBundle(savedInstanceState));
+            d(LogUtils.debugBundle(savedInstanceState));
         }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        d("onStart:" + hash);
+        d("onStart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        d("onResume:" + hash);
+        d("onResume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        d("onPause:" + hash);
+        d("onPause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        d("onStop:" + hash);
+        d("onStop");
     }
 
     @Override
     protected void onDestroy() {
-        d("onDestroy:" + hash);
+        d("onDestroy");
         super.onDestroy();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        d("onSaveInstanceState:" + hash);
+        d("onSaveInstanceState");
         super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        d("onRestoreInstanceState:" + hash);
+        d("onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
     }
 
@@ -81,27 +81,20 @@ public abstract class BaseActivity extends
     }
 
 
+    /**
+     * 必须调用父类的方法，给 Fragment 分派 onResume 回调
+     */
     protected void onResumeFragments() {
+        super.onResumeFragments();
         d("onResumeFragments");
     }
 
-
     protected void d(String msg) {
-        LOGD(TAG, msg);
+        LOGD(String.format("%s:0x%X", TAG, hash), msg);
     }
 
     protected void d(String msg, Throwable ex) {
         LOGE(TAG, msg, ex);
     }
 
-    protected String debugBundle(Bundle bundle) {
-        StringBuilder builder = new StringBuilder();
-        for (String key : bundle.keySet()) {
-            Object obj = bundle.get(key);
-            builder.append("Key:").append(key).append("\n");
-            builder.append("Type:").append(obj.getClass().getName()).append('\n');
-            builder.append("Value:").append(obj).append('\n');
-        }
-        return builder.toString();
-    }
 }

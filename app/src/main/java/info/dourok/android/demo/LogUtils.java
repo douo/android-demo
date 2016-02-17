@@ -122,4 +122,18 @@ public class LogUtils {
         String methodName = e.getMethodName();
         return methodName;
     }
+
+    public static String debugBundle(Bundle bundle) {
+        if (bundle == null) {
+            return "null";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (String key : bundle.keySet()) {
+            Object obj = bundle.get(key);
+            builder.append("Key:").append(key).append("\n");
+            builder.append("Type:").append(obj.getClass().getName()).append('\n');
+            builder.append("Value:").append(obj).append('\n');
+        }
+        return builder.toString();
+    }
 }

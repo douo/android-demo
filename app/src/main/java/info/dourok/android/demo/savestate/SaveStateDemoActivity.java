@@ -20,7 +20,7 @@ public class SaveStateDemoActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_save_state_demo1);
-        button = (Button) findViewById(R.id.button);
+        button = (Button) findViewById(R.id.toggle);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
