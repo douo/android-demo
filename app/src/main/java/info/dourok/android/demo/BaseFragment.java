@@ -90,6 +90,10 @@ public class BaseFragment extends Fragment {
         d(getMethodName());
     }
 
+    /**
+     * {@link android.support.v4.app.FragmentTransaction#detach(Fragment)} 会调用 onDestroyView 但不调用到 onDetach
+     * 此时 View 的状态应该会被保存
+     */
     public void onDestroyView() {
         super.onDestroyView();
         d(getMethodName());
@@ -99,7 +103,6 @@ public class BaseFragment extends Fragment {
         super.onDestroy();
         d(getMethodName());
     }
-
 
     @Override
     public void onDetach() {
@@ -140,6 +143,7 @@ public class BaseFragment extends Fragment {
     protected void d(String msg, Throwable ex) {
         LOGD(TAG, msg, ex);
     }
+
 
     protected SparseArray<?> getSavedViewState() {
         try {

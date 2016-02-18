@@ -56,6 +56,10 @@ public class SaveStateDemoActivity extends BaseActivity {
      * 什么样的情况下会调用这个方法
      * - onConfigurationChange
      * @param outState
+     *
+     * onSaveInstanceState() function has to be used for saving small objects, not for heavy objects.
+     * onSaveInstanceState 应该保存什么？用户操作
+     *
      */
     @Override
     protected void onSaveInstanceState(Bundle outState) {

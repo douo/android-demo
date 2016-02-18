@@ -15,11 +15,12 @@
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/toggle"/>
+        android:layout_below="@+id/toggle" />
 
     <Button
         android:id="@+id/toggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Toggle" />
+
 </RelativeLayout>

@@ -25,6 +25,11 @@ public class FragmentStateDemoActivity extends BaseActivity {
                 if (f.isDetached()) {
                     getSupportFragmentManager().beginTransaction().attach(f).commit();
                 } else {
+                    /**
+                     * detach 会使 fragment 到 destroy view 状态
+                     * 其 view 树 会分发 save instance state 事件
+                     * 但 fragment 本身不会 save instance state
+                     */
                     getSupportFragmentManager().beginTransaction().detach(f).commit();
                 }
             }
