@@ -26,7 +26,7 @@ public class SaveStateDemoActivity extends BaseActivity {
             public void onClick(View v) {
                 textView.setText(Integer.toString(rand));
                 //设置了 android:freezesText="true" ，让 Activity 重启后 TextView 还能保留原来的文本值
-                textView.setFreezesText(true);
+//                textView.setFreezesText(true);
             }
         });
         textView = (TextView) findViewById(R.id.textView);
