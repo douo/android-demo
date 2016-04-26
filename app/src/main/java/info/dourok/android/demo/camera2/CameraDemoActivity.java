@@ -9,8 +9,9 @@ import android.widget.TextView;
 
 import info.dourok.android.demo.R;
 import info.dourok.camera.BaseCameraActivity;
+import info.dourok.camera.ImageData;
 
-public class CameraDemoActivity extends BaseCameraActivity {
+public class CameraDemoActivity extends BaseCameraActivity<ImageData> {
     TextView flash;
 
     @Override
@@ -21,26 +22,52 @@ public class CameraDemoActivity extends BaseCameraActivity {
 
     @Override
     protected void onCameraReady() {
+
         flash = (TextView) findViewById(R.id.flashMode);
-        flash.setText(getFlashModeName(getFlashMode()));
-        final PopupMenu popupMenu = new PopupMenu(this, flash);
-        for (final String val : getSupportedFlashModes()) {
-            MenuItem item = popupMenu.getMenu().add(getFlashModeName(val));
-            item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        if(isFlashSupported()) {
+            flash.setText(getFlashModeName(getFlashMode()));
+            final PopupMenu popupMenu = new PopupMenu(this, flash);
+            for (final String val : getSupportedFlashModes()) {
+                MenuItem item = popupMenu.getMenu().add(getFlashModeName(val));
+                item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        updateFlashMode(val);
+                        flash.setText(getFlashModeName(getFlashMode()));
+                        return true;
+                    }
+                });
+            }
+            flash.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    updateFlashMode(val);
-                    flash.setText(getFlashModeName(getFlashMode()));
-                    return true;
+                public void onClick(View v) {
+                    popupMenu.show();
                 }
             });
+        }else{
+            flash.setVisibility(View.GONE);
         }
-        flash.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                popupMenu.show();
-            }
-        });
+    }
+
+    @Override
+    protected ImageData processingPicture(ImageData image) {
+        System.out.println("processing:"+Thread.currentThread().toString());
+        return image;
+    }
+
+    @Override
+    protected void onPreProcessingPicture() {
+        System.out.println("pre:"+Thread.currentThread().toString());
+    }
+
+    @Override
+    protected void onFinishProcessingPicture(ImageData image) {
+        System.out.println("finish:"+Thread.currentThread().toString());
+    }
+
+    @Override
+    protected ImageData buildImageData(byte[] data) {
+        return new ImageData(data);
     }
 
 

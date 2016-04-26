@@ -11,12 +11,16 @@ import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.hardware.Camera.Size;
 import android.media.AudioManager;
+import android.media.Image;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public abstract class BaseCameraActivity extends AppCompatActivity {
+public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatActivity {
 
     private static final int FOCUS_AREA_SIZE = 100;
     private Camera mCamera;
@@ -40,104 +44,45 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
     private View mFocusView;
 
     private boolean focusing;
+    //按下拍照按钮时，正好对焦中，对焦好后再拍照
     private boolean pictureRequest;
-    private boolean autoFocusSuccess;
+
 
     private String flashMode;
     private List<String> supportedFlashModes;
 
 
+    //是否支持自动对焦
     private boolean autoFocusSupported;
+    //自动对焦成功标志
+    private boolean autoFocusSuccess;
+
     private final static String TAG = BaseCameraActivity.class.getCanonicalName();
 
 
-    protected int getViewResourceId() {
-        return R.layout.base_camera;
-    }
+    protected abstract int getViewResourceId();
 
+    //    {
+//        return R.layout.base_camera;
+//    }
+//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
         setContentView(getViewResourceId());
         mPreview = new CameraPreview(this);
-        //setup Touch View
-        mTouchView = findViewById(R.id.preview);
-        if (autoFocusSupported) {
-            mTouchView.setOnTouchListener(new OnTouchListener() {
 
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (!isBusy() && event.getAction() == MotionEvent.ACTION_DOWN) {
-                        int x = (int) event.getX();
-                        int y = (int) event.getY();
-                        int half = FOCUS_AREA_SIZE / 2;
-
-                        if (x + half > mPreview.getWidth()) {
-                            x = mPreview.getWidth() - half;
-                        }
-                        if (x - half < 0) {
-                            x = half;
-                        }
-                        if (y + half > mPreview.getHeight()) {
-                            y = mPreview.getHeight() - half;
-                        }
-                        if (y - half < 0) {
-                            y = half;
-                        }
-
-                        Rect touchRect = new Rect(x - half, y - half, x + half, y + half);
-
-                        submitFocusAreaRect(touchRect);
-                    }
-                    return false;
-                }
-            });
-        }
-        ((FrameLayout) findViewById(R.id.preview)).addView(mPreview, 0);
-        mFocusView = findViewById(R.id.focus);
-        // setup capture button
-        mCapture = findViewById(R.id.capture);
-        mCapture.setOnTouchListener(new OnTouchListener() {
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                d("onTouch:" + event.getAction());
-                if (!isBusy()) {
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            if (autoFocusSupported) {
-                                autoFocusButtonDown();
-                            }
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            if (autoFocusSupported) {
-                                if (!pictureRequest) {
-                                    pictureRequest = true;
-                                    takePicture();
-                                }
-                                autoFocusButtonUp();
-                                v.performClick();
-                            } else {
-                                takePictureWithParas();
-                            }
-                            break;
-                        case MotionEvent.ACTION_CANCEL:
-                            autoFocusButtonUp();
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                return false;
-            }
-        });
         boolean opened = safeCameraOpen();
-        if(opened){
+        if (opened) {
             setupCamera();
             mPreview.setCamera(mCamera);
+            ((FrameLayout) findViewById(R.id.preview)).addView(mPreview, 0);
+            setupFocusView();
+            setupCaptureButton();
             onCameraReady();
-        }else{
+        } else {
             new AlertDialog.Builder(this).setTitle("无法打开摄像头!").setPositiveButton("确定", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -146,6 +91,7 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
             });
         }
     }
+
 
     private boolean safeCameraOpen() {
         boolean qOpened = false;
@@ -172,6 +118,8 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
             d(prettyParameters(params));
             List<String> focusModes = params.getSupportedFocusModes();
+
+            //默认使用自动对焦
             autoFocusSupported = false;
             if (focusModes != null) {
                 if (focusModes.contains(Parameters.FOCUS_MODE_AUTO)) {
@@ -199,6 +147,84 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         }
     }
 
+    private void setupCaptureButton() {
+        // setup capture button
+        mCapture = findViewById(R.id.capture);
+        mCapture.setOnTouchListener(new OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                d("onTouch:" + event.getAction());
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            if (autoFocusSupported) {
+                                autoFocusButtonDown();
+                            }
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            if (autoFocusSupported) {
+                                if (!pictureRequest) {
+                                    pictureRequest = true;
+                                    takePicture();
+                                }
+                                autoFocusButtonUp();
+                                v.performClick();
+                            } else {
+                                takePictureWithParas();
+                            }
+                            break;
+                        case MotionEvent.ACTION_CANCEL:
+                            autoFocusButtonUp();
+                            break;
+                        default:
+                            break;
+                    }
+                return false;
+            }
+        });
+    }
+
+    private void setupFocusView() {
+        //setup Touch View
+        mTouchView = findViewById(R.id.preview);
+
+        if (autoFocusSupported) {
+            final int areaInDip = (int) dipToPixels(this, FOCUS_AREA_SIZE);
+            mTouchView.setOnTouchListener(new OnTouchListener() {
+
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        int x = (int) event.getX();
+                        int y = (int) event.getY();
+                        int half = areaInDip / 2;
+
+                        if (x + half > mPreview.getWidth()) {
+                            x = mPreview.getWidth() - half;
+                        }
+                        if (x - half < 0) {
+                            x = half;
+                        }
+                        if (y + half > mPreview.getHeight()) {
+                            y = mPreview.getHeight() - half;
+                        }
+                        if (y - half < 0) {
+                            y = half;
+                        }
+
+                        Rect touchRect = new Rect(x - half, y - half, x + half, y + half);
+
+                        submitFocusAreaRect(touchRect);
+                    }
+                    return false;
+                }
+            });
+        }
+
+        mFocusView = findViewById(R.id.focus);
+    }
+
+
     protected abstract void onCameraReady();
 
     public boolean isFlashOn() {
@@ -215,6 +241,10 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         return supportedFlashModes;
     }
 
+    public boolean isFlashSupported() {
+        return supportedFlashModes != null && supportedFlashModes.size() > 0;
+    }
+
     public void updateFlashMode(String value) {
         Parameters parameters = mCamera.getParameters();
         List<String> flashModes = parameters.getSupportedFlashModes();
@@ -222,18 +252,16 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
             flashMode = value;
             parameters.setFlashMode(value);
             SharedPreferences sp = getPreferences(MODE_PRIVATE);
-            sp.edit().putString("FLASH",value).apply();
+            sp.edit().putString("FLASH", value).apply();
             mCamera.setParameters(parameters);
-        }else {
+        } else {
             throw new UnsupportedOperationException("flash mode is not supported");
         }
     }
 
-    public String getFlashMode(){
+    public String getFlashMode() {
         return flashMode;
     }
-
-
 
     private void releaseCameraAndPreview() {
         mPreview.setCamera(null);
@@ -272,7 +300,7 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (!isBusy() && event.getAction() == KeyEvent.ACTION_DOWN) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_CAMERA:
                     if (!pictureRequest) {
@@ -287,13 +315,12 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
                     break;
             }
         }
-
         return super.onKeyDown(keyCode, event);
     }
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (!isBusy() && event.getAction() == KeyEvent.ACTION_UP) {
+        if (event.getAction() == KeyEvent.ACTION_UP) {
             switch (keyCode) {
                 case KeyEvent.KEYCODE_CAMERA:
                     pictureRequest = false;
@@ -359,7 +386,6 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
             cameraParameters.setFocusAreas(focusAreas);
             mCamera.setParameters(cameraParameters);
 
-            d("Busy when focus:" + isBusy());
             // Start the autofocus operation
             mCamera.autoFocus(mAutoFocusCallback);
         } catch (Exception e) {
@@ -370,8 +396,6 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
     }
 
     private void takePictureWithParas() {
-        setBusy(true);
-        //mCamera.setParameters(realtimeParameters.update(mCamera.getParameters()));
         pictureRequest = false;
         mCamera.takePicture(shutterCallback, null, mPicture);
     }
@@ -413,11 +437,18 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         mCamera.startPreview();
     }
 
-    protected void handlePicture(byte[] data) {
-        // setBusy(true);
-        d("PictureTaken:" + data.length);
-        // setBusy(false);
-    }
+    /**
+     * run in background thread
+     *
+     * @param image
+     */
+    protected abstract T processingPicture(T image);
+
+    protected abstract void onPreProcessingPicture();
+
+    protected abstract void onFinishProcessingPicture(T image);
+
+    protected abstract T buildImageData(byte[] data);
 
     private final ShutterCallback shutterCallback = new ShutterCallback() {
         public void onShutter() {
@@ -430,11 +461,38 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            handlePicture(data);
+            ImageWorker worker = new ImageWorker();
+            T imageData = buildImageData(data);
+            worker.execute(imageData);
             mCamera.startPreview();
-            setBusy(false);
         }
     };
+
+
+    private class ImageWorker extends AsyncTask<T, Integer, T> {
+
+        @Override
+        protected void onPreExecute() {
+            onPreProcessingPicture();
+        }
+
+        @Override
+        protected void onPostExecute(T t) {
+            onFinishProcessingPicture(t);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+
+        @SafeVarargs
+        @Override
+        protected final T doInBackground(T... params) {
+            return processingPicture(params[0]);
+        }
+    }
+
 
     /**
      * Toolkit
@@ -474,12 +532,11 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
     }
 
     /**
-     *
      * @param flashMode
      * @return 返回闪光灯模式的名词，未知返回 null
      */
-    public static String getFlashModeName(String flashMode){
-        switch (flashMode){
+    public static String getFlashModeName(String flashMode) {
+        switch (flashMode) {
             case Parameters.FLASH_MODE_AUTO:
                 return "自动";
             case Parameters.FLASH_MODE_ON:
@@ -493,6 +550,11 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
             default:
                 return null;
         }
+    }
+
+    public static float dipToPixels(Context context, float dipValue) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
     }
 
     private static String getCameraSupportedInfo(Parameters p) {
@@ -571,15 +633,15 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         Log.i(TAG, o == null ? "null" : o.toString());
     }
 
-    private boolean busy; // TODO multi thread support
-
-    protected void setBusy(boolean b) {
-        this.busy = b;
-    }
-
-
-    public boolean isBusy() {
-        return busy;
-    }
+//    private boolean busy; // TODO multi thread support
+//
+//    protected void setBusy(boolean b) {
+//        this.busy = b;
+//    }
+//
+//
+//    public boolean isBusy() {
+//        return busy;
+//    }
 
 }
