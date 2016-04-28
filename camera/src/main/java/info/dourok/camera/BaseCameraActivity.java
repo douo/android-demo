@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatActivity {
+public abstract class BaseCameraActivity extends AppCompatActivity {
 
     private static final int FOCUS_AREA_SIZE = 100;
     private Camera mCamera;
@@ -445,18 +445,12 @@ public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatA
         mCamera.startPreview();
     }
 
-    /**
-     * run in background thread
-     *
-     * @param image
-     */
-    protected abstract T processingPicture(T image);
 
-    protected abstract void onPreProcessingPicture();
+    protected abstract void onPreProcessingPicture(ImageWorker worker);
 
-    protected abstract void onFinishProcessingPicture(T image);
+    public abstract void onDoneProcessing(ImageWorker worker);
 
-    protected abstract T buildImageData(byte[] data);
+    protected abstract ImageWorker buildImageWorker();
 
     private final ShutterCallback shutterCallback = new ShutterCallback() {
         public void onShutter() {
@@ -469,37 +463,13 @@ public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatA
 
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            ImageWorker worker = new ImageWorker();
-            T imageData = buildImageData(data);
-            worker.execute(imageData);
+            ImageWorker worker = buildImageWorker();
+            onPreProcessingPicture(worker);
+            worker.execute(data);
             mCamera.startPreview();
         }
     };
 
-
-    private class ImageWorker extends AsyncTask<T, Integer, T> {
-
-        @Override
-        protected void onPreExecute() {
-            onPreProcessingPicture();
-        }
-
-        @Override
-        protected void onPostExecute(T t) {
-            onFinishProcessingPicture(t);
-        }
-
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-        }
-
-        @SafeVarargs
-        @Override
-        protected final T doInBackground(T... params) {
-            return processingPicture(params[0]);
-        }
-    }
 
 
     /**

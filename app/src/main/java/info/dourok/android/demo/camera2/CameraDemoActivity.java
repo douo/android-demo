@@ -1,6 +1,5 @@
 package info.dourok.android.demo.camera2;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -9,9 +8,9 @@ import android.widget.TextView;
 
 import info.dourok.android.demo.R;
 import info.dourok.camera.BaseCameraActivity;
-import info.dourok.camera.ImageData;
+import info.dourok.camera.ImageWorker;
 
-public class CameraDemoActivity extends BaseCameraActivity<ImageData> {
+public class CameraDemoActivity extends BaseCameraActivity {
     TextView flash;
 
     @Override
@@ -50,26 +49,19 @@ public class CameraDemoActivity extends BaseCameraActivity<ImageData> {
     }
 
     @Override
-    protected ImageData processingPicture(ImageData image) {
-        System.out.println("processing:"+Thread.currentThread().toString());
-        return image;
+    protected void onPreProcessingPicture(ImageWorker worker) {
+        System.out.println("onPreProcessingPicture:"+Thread.currentThread().toString());
     }
 
     @Override
-    protected void onPreProcessingPicture() {
-        System.out.println("pre:"+Thread.currentThread().toString());
+    public void onDoneProcessing(ImageWorker worker) {
+        System.out.println("onDoneProcessing:"+Thread.currentThread().toString());
     }
 
     @Override
-    protected void onFinishProcessingPicture(ImageData image) {
-        System.out.println("finish:"+Thread.currentThread().toString());
+    protected ImageWorker buildImageWorker() {
+        return new FileImageWorker(this);
     }
-
-    @Override
-    protected ImageData buildImageData(byte[] data) {
-        return new ImageData(data);
-    }
-
 
     @Override
     protected int getViewResourceId() {
