@@ -58,6 +58,7 @@ public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatA
     private boolean autoFocusSuccess;
 
     private final static String TAG = BaseCameraActivity.class.getCanonicalName();
+    private int focusAreaInDip;
 
 
     protected abstract int getViewResourceId();
@@ -155,30 +156,30 @@ public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatA
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 d("onTouch:" + event.getAction());
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            if (autoFocusSupported) {
-                                autoFocusButtonDown();
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        if (autoFocusSupported) {
+                            autoFocusButtonDown();
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (autoFocusSupported) {
+                            if (!pictureRequest) {
+                                pictureRequest = true;
+                                takePicture();
                             }
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            if (autoFocusSupported) {
-                                if (!pictureRequest) {
-                                    pictureRequest = true;
-                                    takePicture();
-                                }
-                                autoFocusButtonUp();
-                                v.performClick();
-                            } else {
-                                takePictureWithParas();
-                            }
-                            break;
-                        case MotionEvent.ACTION_CANCEL:
                             autoFocusButtonUp();
-                            break;
-                        default:
-                            break;
-                    }
+                            v.performClick();
+                        } else {
+                            takePictureWithParas();
+                        }
+                        break;
+                    case MotionEvent.ACTION_CANCEL:
+                        autoFocusButtonUp();
+                        break;
+                    default:
+                        break;
+                }
                 return false;
             }
         });
@@ -189,15 +190,14 @@ public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatA
         mTouchView = findViewById(R.id.preview);
 
         if (autoFocusSupported) {
-            final int areaInDip = (int) dipToPixels(this, FOCUS_AREA_SIZE);
+            focusAreaInDip = (int) dipToPixels(this, FOCUS_AREA_SIZE);
             mTouchView.setOnTouchListener(new OnTouchListener() {
-
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         int x = (int) event.getX();
                         int y = (int) event.getY();
-                        int half = areaInDip / 2;
+                        int half = focusAreaInDip / 2;
 
                         if (x + half > mPreview.getWidth()) {
                             x = mPreview.getWidth() - half;
@@ -220,8 +220,15 @@ public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatA
                 }
             });
         }
-
         mFocusView = findViewById(R.id.focus);
+    }
+
+    private void resetFocusViewPosition() {
+        int x = mPreview.getWidth() / 2;
+        int y = mPreview.getHeight() / 2;
+        int half = focusAreaInDip / 2;
+        Rect touchRect = new Rect(x - half, y - half, x + half, y + half);
+        submitFocusAreaRect(touchRect);
     }
 
 
@@ -335,6 +342,7 @@ public abstract class BaseCameraActivity<T extends ImageData> extends AppCompatA
 
     private void autoFocusButtonDown() {
         if (!autoFocusSuccess) {
+            resetFocusViewPosition();
             mCamera.autoFocus(mAutoFocusCallback);
             focusing = true;
         }
