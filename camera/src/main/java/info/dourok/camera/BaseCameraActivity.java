@@ -300,7 +300,7 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         mFocusView = findViewById(R.id.focus);
     }
 
-    private void resetFocusViewPosition() {
+    private void resetFocusArea() {
         int x = mPreview.getWidth() / 2;
         int y = mPreview.getHeight() / 2;
         int half = focusAreaInDip / 2;
@@ -419,8 +419,7 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
     private void autoFocusButtonDown() {
         if (!autoFocusSuccess) {
-            resetFocusViewPosition();
-            mCamera.autoFocus(mAutoFocusCallback);
+            resetFocusArea();
             focusing = true;
         }
     }
