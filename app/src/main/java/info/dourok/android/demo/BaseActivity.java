@@ -19,6 +19,8 @@ public abstract class BaseActivity extends
     protected final String TAG = "V:" + makeLogTag(((Object) this).getClass());
     int hash = System.identityHashCode(this);
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

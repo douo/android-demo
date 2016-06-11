@@ -37,31 +37,204 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
     private static final int FOCUS_AREA_SIZE = 100;
     private static final int PERMISSIONS_REQUEST_CODE_CAMERA = 0x10;
+    private final static String TAG = BaseCameraActivity.class.getCanonicalName();
+    final Handler handler = new Handler();
+    private final ShutterCallback shutterCallback = new ShutterCallback() {
+        public void onShutter() {
+            AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
+        }
+    };
     private Camera mCamera;
+    protected PictureCallback mPicture = new PictureCallback() {
+
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            ImageWorker worker = getImageWorker();
+            onPreProcessingPicture(worker);
+            worker.execute(data);
+            mCamera.startPreview();
+        }
+    };
     private CameraPreview mPreview;
-
-
     private View mCapture;
     private View mTouchView;
     private View mFocusView;
-
     private boolean focusing;
     //按下拍照按钮时，正好对焦中，对焦好后再拍照
     private boolean pictureRequest;
-
-
     private String flashMode;
     private List<String> supportedFlashModes;
-
-
     //是否支持自动对焦
     private boolean autoFocusSupported;
     //自动对焦成功标志
     private boolean autoFocusSuccess;
-
-    private final static String TAG = BaseCameraActivity.class.getCanonicalName();
     private int focusAreaInDip;
+    private AutoFocusCallback mAutoFocusCallback = new AutoFocusCallback() {
 
+        @Override
+        public void onAutoFocus(boolean success, Camera camera) {
+            d("onAutoFocus:" + success);
+            focusing = false;
+            if (success) {
+                mFocusView.setBackgroundResource(R.drawable.ic_focus_focused);
+            } else {
+                mFocusView.setBackgroundResource(R.drawable.ic_focus_failed);
+            }
+
+            handler.postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    mFocusView.setBackgroundDrawable(null);
+                }
+            }, 1000);
+            if (pictureRequest) {
+                pictureRequest = false;
+                takePictureWithParas();
+                return;
+            }
+            pictureRequest = false;
+            if (success) {
+                autoFocusSuccess = true;
+            }
+        }
+    };
+
+    /**
+     * 找出大于 width height 的最小尺寸(断言 list 是从小到大排序的) 找不到则返回最后一个 size
+     *
+     * @param list
+     * @param width
+     * @param height
+     * @param factor
+     * @return
+     */
+    private static Size getOptimalSize(List<Size> list, int width, int height, int factor) {
+        Size result = null;
+        for (final Size size : list) {
+            if (size.width >= width * factor && size.height >= height * factor) {
+                result = size;
+                break;
+            }
+        }
+        if (result == null) {
+            result = list.get(list.size() - 1);
+        }
+        d("getOptimalSize: " + result.width + " x " + result.height);
+        return result;
+    }
+
+    private static String prettyParameters(Parameters p) {
+        String[] s = p.flatten().split(";");
+        StringBuilder b = new StringBuilder();
+        for (String _s : s) {
+            b.append(_s).append("\n");
+        }
+        return b.toString();
+    }
+
+    /**
+     * @param flashMode
+     * @return 返回闪光灯模式的名词，未知返回 null
+     */
+    public static String getFlashModeName(String flashMode) {
+        switch (flashMode) {
+            case Parameters.FLASH_MODE_AUTO:
+                return "自动";
+            case Parameters.FLASH_MODE_ON:
+                return "打开";
+            case Parameters.FLASH_MODE_OFF:
+                return "关闭";
+            case Parameters.FLASH_MODE_TORCH:
+                return "长亮";
+            case Parameters.FLASH_MODE_RED_EYE:
+                return "红眼";
+            default:
+                return null;
+        }
+    }
+
+    public static float dipToPixels(Context context, float dipValue) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
+    }
+
+    private static String getCameraSupportedInfo(Parameters p) {
+        StringBuilder b = new StringBuilder();
+        b.append("Supported Antibanding List:").append("\n");
+        for (Object o : p.getSupportedAntibanding()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported ColorEffects List:").append("\n");
+        for (Object o : p.getSupportedColorEffects()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported FlashModes List:").append("\n");
+        for (Object o : p.getSupportedFlashModes()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported FocusModes List:").append("\n");
+        for (Object o : p.getSupportedFocusModes()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported JpegThumbnailSizes List:").append("\n");
+        for (Object o : p.getSupportedJpegThumbnailSizes()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported PictureFormats List:").append("\n");
+        for (Object o : p.getSupportedPictureFormats()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported PictureSizes List:").append("\n");
+        for (Object o : p.getSupportedPictureSizes()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported PreviewFormats List:").append("\n");
+        for (Object o : p.getSupportedPreviewFormats()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported PreviewFpsRange List:").append("\n");
+        for (Object o : p.getSupportedPreviewFpsRange()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported PreviewFrameRates List:").append("\n");
+        for (Object o : p.getSupportedPreviewFrameRates()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported PreviewFpsRange List:").append("\n");
+        for (Object o : p.getSupportedPreviewFpsRange()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported PreviewSizes List:").append("\n");
+        for (Object o : p.getSupportedPreviewSizes()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported SceneModes List:").append("\n");
+        for (Object o : p.getSupportedSceneModes()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported VideoSizes List:").append("\n");
+        for (Object o : p.getSupportedVideoSizes()) {
+            b.append(o).append("\n");
+        }
+        b.append("Supported WhiteBalance List:").append("\n");
+        for (Object o : p.getSupportedWhiteBalance()) {
+            b.append(o).append("\n");
+        }
+
+        b.append("MaxExposureCompensation: ").append(p.getMaxExposureCompensation() + "\n");
+        b.append("MaxNumDetectedFaces: ").append(p.getMaxNumDetectedFaces() + "\n");
+        b.append("MaxNumFocusAreas: ").append(p.getMaxNumFocusAreas() + "\n");
+        b.append("MaxNumMeteringAreas: ").append(p.getMaxNumMeteringAreas() + "\n");
+        b.append("MaxZoom: ").append(p.getMaxZoom() + "\n");
+
+        return b.toString();
+    }
+
+    private static void d(Object o) {
+        Log.i(TAG, o == null ? "null" : o.toString());
+    }
 
     protected abstract int getViewResourceId();
 
@@ -76,13 +249,14 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
         setContentView(getViewResourceId());
         mPreview = new CameraPreview(this);
-        if(checkPermission()){
+        if (checkPermission()) {
             initCamera();
         }
 
     }
 
-    private boolean checkPermission(){
+
+    private boolean checkPermission() {
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.CAMERA)
@@ -102,7 +276,7 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
                                 new String[]{Manifest.permission.CAMERA},
                                 PERMISSIONS_REQUEST_CODE_CAMERA);
                     }
-                }).setNegativeButton("离开",new DialogInterface.OnClickListener() {
+                }).setNegativeButton("离开", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         finish();
@@ -122,7 +296,7 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
                 // result of the request.
             }
             return false;
-        }else{
+        } else {
             return true;
         }
     }
@@ -151,7 +325,7 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         }
     }
 
-    private void initCamera(){
+    private void initCamera() {
         boolean opened = safeCameraOpen();
         if (opened) {
             setupCamera();
@@ -169,7 +343,6 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
             }).show();
         }
     }
-
 
     private boolean safeCameraOpen() {
         boolean qOpened = false;
@@ -308,7 +481,6 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         submitFocusAreaRect(touchRect);
     }
 
-
     protected abstract void onCameraReady();
 
     public boolean isFlashOn() {
@@ -435,6 +607,11 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         }
     }
 
+
+    /**
+     * Toolkit
+     */
+
     private void submitFocusAreaRect(final Rect touchRect) {
         Parameters cameraParameters = mCamera.getParameters();
         if (cameraParameters.getMaxNumFocusAreas() == 0
@@ -484,208 +661,15 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         mCamera.takePicture(shutterCallback, null, mPicture);
     }
 
-    final Handler handler = new Handler();
-
-    private AutoFocusCallback mAutoFocusCallback = new AutoFocusCallback() {
-
-        @Override
-        public void onAutoFocus(boolean success, Camera camera) {
-            d("onAutoFocus:" + success);
-            focusing = false;
-            if (success) {
-                mFocusView.setBackgroundResource(R.drawable.ic_focus_focused);
-            } else {
-                mFocusView.setBackgroundResource(R.drawable.ic_focus_failed);
-            }
-
-            handler.postDelayed(new Runnable() {
-
-                @Override
-                public void run() {
-                    mFocusView.setBackgroundDrawable(null);
-                }
-            }, 1000);
-            if (pictureRequest) {
-                pictureRequest = false;
-                takePictureWithParas();
-                return;
-            }
-            pictureRequest = false;
-            if (success) {
-                autoFocusSuccess = true;
-            }
-        }
-    };
-
     protected void restartPreview() {
         mCamera.startPreview();
     }
-
 
     protected abstract void onPreProcessingPicture(ImageWorker worker);
 
     public abstract void onDoneProcessing(ImageWorker worker);
 
-    protected abstract ImageWorker buildImageWorker();
-
-    private final ShutterCallback shutterCallback = new ShutterCallback() {
-        public void onShutter() {
-            AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
-        }
-    };
-
-    protected PictureCallback mPicture = new PictureCallback() {
-
-        @Override
-        public void onPictureTaken(byte[] data, Camera camera) {
-            ImageWorker worker = buildImageWorker();
-            onPreProcessingPicture(worker);
-            worker.execute(data);
-            mCamera.startPreview();
-        }
-    };
-
-
-
-    /**
-     * Toolkit
-     */
-
-    /**
-     * 找出大于 width height 的最小尺寸(断言 list 是从小到大排序的) 找不到则返回最后一个 size
-     *
-     * @param list
-     * @param width
-     * @param height
-     * @param factor
-     * @return
-     */
-    private static Size getOptimalSize(List<Size> list, int width, int height, int factor) {
-        Size result = null;
-        for (final Size size : list) {
-            if (size.width >= width * factor && size.height >= height * factor) {
-                result = size;
-                break;
-            }
-        }
-        if (result == null) {
-            result = list.get(list.size() - 1);
-        }
-        d("getOptimalSize: " + result.width + " x " + result.height);
-        return result;
-    }
-
-    private static String prettyParameters(Parameters p) {
-        String[] s = p.flatten().split(";");
-        StringBuilder b = new StringBuilder();
-        for (String _s : s) {
-            b.append(_s).append("\n");
-        }
-        return b.toString();
-    }
-
-    /**
-     * @param flashMode
-     * @return 返回闪光灯模式的名词，未知返回 null
-     */
-    public static String getFlashModeName(String flashMode) {
-        switch (flashMode) {
-            case Parameters.FLASH_MODE_AUTO:
-                return "自动";
-            case Parameters.FLASH_MODE_ON:
-                return "打开";
-            case Parameters.FLASH_MODE_OFF:
-                return "关闭";
-            case Parameters.FLASH_MODE_TORCH:
-                return "长亮";
-            case Parameters.FLASH_MODE_RED_EYE:
-                return "红眼";
-            default:
-                return null;
-        }
-    }
-
-    public static float dipToPixels(Context context, float dipValue) {
-        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
-    }
-
-    private static String getCameraSupportedInfo(Parameters p) {
-        StringBuilder b = new StringBuilder();
-        b.append("Supported Antibanding List:").append("\n");
-        for (Object o : p.getSupportedAntibanding()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported ColorEffects List:").append("\n");
-        for (Object o : p.getSupportedColorEffects()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported FlashModes List:").append("\n");
-        for (Object o : p.getSupportedFlashModes()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported FocusModes List:").append("\n");
-        for (Object o : p.getSupportedFocusModes()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported JpegThumbnailSizes List:").append("\n");
-        for (Object o : p.getSupportedJpegThumbnailSizes()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported PictureFormats List:").append("\n");
-        for (Object o : p.getSupportedPictureFormats()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported PictureSizes List:").append("\n");
-        for (Object o : p.getSupportedPictureSizes()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported PreviewFormats List:").append("\n");
-        for (Object o : p.getSupportedPreviewFormats()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported PreviewFpsRange List:").append("\n");
-        for (Object o : p.getSupportedPreviewFpsRange()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported PreviewFrameRates List:").append("\n");
-        for (Object o : p.getSupportedPreviewFrameRates()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported PreviewFpsRange List:").append("\n");
-        for (Object o : p.getSupportedPreviewFpsRange()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported PreviewSizes List:").append("\n");
-        for (Object o : p.getSupportedPreviewSizes()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported SceneModes List:").append("\n");
-        for (Object o : p.getSupportedSceneModes()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported VideoSizes List:").append("\n");
-        for (Object o : p.getSupportedVideoSizes()) {
-            b.append(o).append("\n");
-        }
-        b.append("Supported WhiteBalance List:").append("\n");
-        for (Object o : p.getSupportedWhiteBalance()) {
-            b.append(o).append("\n");
-        }
-
-        b.append("MaxExposureCompensation: ").append(p.getMaxExposureCompensation() + "\n");
-        b.append("MaxNumDetectedFaces: ").append(p.getMaxNumDetectedFaces() + "\n");
-        b.append("MaxNumFocusAreas: ").append(p.getMaxNumFocusAreas() + "\n");
-        b.append("MaxNumMeteringAreas: ").append(p.getMaxNumMeteringAreas() + "\n");
-        b.append("MaxZoom: ").append(p.getMaxZoom() + "\n");
-
-        return b.toString();
-    }
-
-    private static void d(Object o) {
-        Log.i(TAG, o == null ? "null" : o.toString());
-    }
+    protected abstract ImageWorker getImageWorker();
 
 //    private boolean busy; // TODO multi thread support
 //

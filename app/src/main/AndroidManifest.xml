@@ -3,6 +3,7 @@
     package="info.dourok.android.demo">
 
     <uses-permission android:name="android.permission.INTERNET" />
+
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
@@ -14,6 +15,7 @@
     <uses-feature android:name="android.hardware.camera.flash" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -37,21 +39,23 @@
             android:name=".bug.ColorButtonNormalBugActivity"
             android:label="@string/title_activity_color_button_normal_bug"
             android:theme="@style/ColorButtonNormalBug" />
-        <activity android:name=".savestate.SaveStateDemoActivity"></activity>
+        <activity android:name=".savestate.SaveStateDemoActivity" />
         <activity android:name=".savestate.SaveStateDemoFragmentActivity" />
         <activity android:name=".savestate.FragmentStateDemoActivity" />
         <activity android:name=".lifecyclelog.MainActivity" />
         <activity android:name=".lifecyclelog.MainFragmentActivity" />
         <activity android:name=".cordova.MyCordovaActivity" />
         <activity android:name=".cordova.MyCordovaLayoutActivity" />
-        <activity android:name=".sdcard.SDCardDemoActivity">
+        <activity android:name=".sdcard.SDCardDemoActivity"></activity>
+        <activity android:name=".camera2.CameraDemoActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-        <activity android:name=".camera2.CameraDemoActivity"> <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter></activity>
+        <activity android:name=".rx.RxActivity"
+            android:exported="true"></activity>
     </application>
 
 </manifest>

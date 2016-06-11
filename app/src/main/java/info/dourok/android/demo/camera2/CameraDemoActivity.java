@@ -1,10 +1,14 @@
 package info.dourok.android.demo.camera2;
 
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+
+import java.util.List;
 
 import info.dourok.android.demo.R;
 import info.dourok.camera.BaseCameraActivity;
@@ -12,17 +16,26 @@ import info.dourok.camera.ImageWorker;
 
 public class CameraDemoActivity extends BaseCameraActivity {
     TextView flash;
+    ImageView thumb;
+    Gallery mGallery;
+    List<Picture> mPictures;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mGallery = new Gallery(this, "demo");
+        mPictures = mGallery.getPictures();
+        thumb = (ImageView) findViewById(R.id.thumb);
+        if (!mPictures.isEmpty()) {
+            thumb.setImageBitmap(BitmapFactory.decodeFile(mPictures.get(mPictures.size() - 1).thumbPath));
+        }
     }
+
 
     @Override
     protected void onCameraReady() {
-
         flash = (TextView) findViewById(R.id.flashMode);
-        if(isFlashSupported()) {
+        if (isFlashSupported()) {
             flash.setText(getFlashModeName(getFlashMode()));
             final PopupMenu popupMenu = new PopupMenu(this, flash);
             for (final String val : getSupportedFlashModes()) {
@@ -42,24 +55,27 @@ public class CameraDemoActivity extends BaseCameraActivity {
                     popupMenu.show();
                 }
             });
-        }else{
+        } else {
             flash.setVisibility(View.GONE);
         }
     }
 
     @Override
     protected void onPreProcessingPicture(ImageWorker worker) {
-        System.out.println("onPreProcessingPicture:"+Thread.currentThread().toString());
+        System.out.println("onPreProcessingPicture:" + Thread.currentThread().toString());
     }
 
     @Override
     public void onDoneProcessing(ImageWorker worker) {
-        System.out.println("onDoneProcessing:"+Thread.currentThread().toString());
+        System.out.println("onDoneProcessing:" + Thread.currentThread().toString());
+        if (!mPictures.isEmpty()) {
+            thumb.setImageBitmap(BitmapFactory.decodeFile(mPictures.get(mPictures.size() - 1).thumbPath));
+        }
     }
 
     @Override
-    protected ImageWorker buildImageWorker() {
-        return new FileImageWorker(this);
+    protected ImageWorker getImageWorker() {
+        return mGallery.getImageWorker();
     }
 
     @Override
