@@ -2,9 +2,15 @@ package info.dourok.android.demo.camera2;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.media.ThumbnailUtils;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Surface;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,6 +22,8 @@ import java.util.List;
 
 import info.dourok.camera.BaseCameraActivity;
 import info.dourok.camera.ImageWorker;
+
+import static android.util.Log.d;
 
 /**
  * Created by larry on 6/11/16.
@@ -56,11 +64,30 @@ public class Gallery {
         return str.substring(0, pos);
     }
 
+    public static String toJson(List<Picture> pictures) {
+        return new Gson().toJson(pictures);
+    }
+
+    public static List<Picture> fromJson(String data) {
+        return new Gson().fromJson(data, new TypeToken<List<Picture>>() {
+        }.getType());
+    }
+
     public List<Picture> getPictures() {
         if (mPictures == null) {
             mPictures = buildPictureList();
         }
         return mPictures;
+    }
+
+    public void deletePicture(Picture picture) {
+        picture.delete();
+        mPictures.remove(picture);
+    }
+
+    public void updatePicture(List<Picture> pictures) {
+        mPictures.clear();
+        mPictures.addAll(pictures);
     }
 
     public GalleryImageWorker getImageWorker() {
@@ -87,8 +114,9 @@ public class Gallery {
 
     private Picture buildPicture(File file) {
         long size = file.length();
-        long timestamp = Long.parseLong(stripExtension(file.getName()));
-        return new Picture(size, timestamp, file.getAbsolutePath(), stripExtension(file.getAbsolutePath()) + THUMB_EXT);
+        int timestamp = (int) (Long.parseLong(stripExtension(file.getName())) / 1000);
+        return new Picture(size, timestamp, Uri.fromFile(file).toString(),
+                Uri.fromFile(new File(stripExtension(file.getAbsolutePath()) + THUMB_EXT)).toString());
     }
 
     private String[] newImageName() {
@@ -141,9 +169,23 @@ public class Gallery {
             File image = new File(getPictureDir(), names[0]);
             File thumb = new File(getPictureDir(), names[1]);
             try {
+
                 Bitmap source = BitmapFactory.decodeByteArray(data, 0, data.length, null);
+                int rotation = context.getRotation();
+                if (rotation != Surface.ROTATION_90) {
+                    Matrix matrix = new Matrix();
+                    int degres = (Surface.ROTATION_90 - rotation) * 90;
+                    d("Gallery", "d:" + degres);
+                    matrix.postRotate(degres);
+                    Bitmap b = Bitmap.createBitmap(source, 0, 0,
+                            source.getWidth(), source.getHeight(), matrix, true);
+                    source.recycle();
+                    source = b;
+                }
+
                 saveBitmap(image.getAbsolutePath(), source, 80, false);
-                saveBitmap(thumb.getAbsolutePath(), ThumbnailUtils.extractThumbnail(source, THUMBNAIL_SIZE, THUMBNAIL_SIZE), 60, true);
+                saveBitmap(thumb.getAbsolutePath(),
+                        ThumbnailUtils.extractThumbnail(source, THUMBNAIL_SIZE, THUMBNAIL_SIZE), 60, true);
                 source.recycle();
                 getPictures().add(buildPicture(image));
                 return true;

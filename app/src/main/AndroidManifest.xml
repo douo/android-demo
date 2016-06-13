@@ -47,14 +47,18 @@
         <activity android:name=".cordova.MyCordovaActivity" />
         <activity android:name=".cordova.MyCordovaLayoutActivity" />
         <activity android:name=".sdcard.SDCardDemoActivity"></activity>
-        <activity android:name=".camera2.CameraDemoActivity">
+        <activity
+            android:name=".camera2.SimpleCameraActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".rx.RxActivity"
+        <activity android:name=".camera2.ImagePreviewActivity"></activity>
+        <activity
+            android:name=".rx.RxActivity"
             android:exported="true"></activity>
     </application>
 
