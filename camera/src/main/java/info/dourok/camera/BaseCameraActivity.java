@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
@@ -24,6 +25,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
@@ -45,6 +47,8 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
             mgr.playSoundEffect(AudioManager.FLAG_PLAY_SOUND);
         }
     };
+    RotationEventListener mRotationEventListener;
+    private boolean rotationDetection = true;
     private Camera mCamera;
     protected PictureCallback mPicture = new PictureCallback() {
 
@@ -160,6 +164,11 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
     }
 
+    //    {
+//        return R.layout.base_camera;
+//    }
+//
+
     private static String getCameraSupportedInfo(Parameters p) {
         StringBuilder b = new StringBuilder();
         b.append("Supported Antibanding List:").append("\n");
@@ -236,17 +245,32 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
         Log.i(TAG, o == null ? "null" : o.toString());
     }
 
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        d("orientation:" + newConfig.orientation);
+        super.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (rotationDetection) {
+            mRotationEventListener.enable();
+        }
+    }
+
     protected abstract int getViewResourceId();
 
-    //    {
-//        return R.layout.base_camera;
-//    }
-//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
-
+        mRotationEventListener = new RotationEventListener(this, true) {
+            @Override
+            protected void onRotationChanged(int newRotation, int oldRotation) {
+                BaseCameraActivity.this.onRotationChanged(newRotation, oldRotation);
+            }
+        };
         setContentView(getViewResourceId());
         mPreview = new CameraPreview(this);
         if (checkPermission()) {
@@ -255,6 +279,51 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (rotationDetection) {
+            mRotationEventListener.disable();
+        }
+    }
+
+    protected RotationEventListener getRotationEventListener() {
+        return mRotationEventListener;
+    }
+
+    public boolean isRotationDetection() {
+        return rotationDetection;
+    }
+
+    public void setRotationDetection(boolean rotationDetection) {
+        this.rotationDetection = rotationDetection;
+        if (rotationDetection) {
+            mRotationEventListener.enable();
+        } else {
+            mRotationEventListener.disable();
+        }
+    }
+
+    /**
+     * rotation 为屏幕方向
+     * 与 {@link android.view.Display#getRotation()} 一致
+     * 可能值为 {@link Surface#ROTATION_0 Surface.ROTATION_0}
+     * (no rotation), {@link Surface#ROTATION_90 Surface.ROTATION_90},
+     * {@link Surface#ROTATION_180 Surface.ROTATION_180},
+     * {@link Surface#ROTATION_270 Surface.ROTATION_270}.
+     * 不检测 rotation 的情况下，我们认为 rotation 默认为 {@link Surface#ROTATION_90 Surface.ROTATION_90}
+     *
+     * @return 当前屏幕方向 Surface.Rotation
+     */
+    public int getRotation() {
+        if (isRotationDetection()) {
+            return mRotationEventListener.getRotation();
+        } else {
+            return Surface.ROTATION_90;
+        }
+    }
+
+    protected abstract void onRotationChanged(int newRotation, int oldRotation);
 
     private boolean checkPermission() {
         // Here, thisActivity is the current activity
@@ -363,11 +432,11 @@ public abstract class BaseCameraActivity extends AppCompatActivity {
 
     private void setupCamera() {
         try {
+//            d("setupCamera");
+//            CameraPreview.setCameraDisplayOrientation(this, 0, mCamera);
             mCamera.setDisplayOrientation(90);
-
             Parameters params = mCamera.getParameters();
-
-            d(prettyParameters(params));
+//            d(prettyParameters(params));
             List<String> focusModes = params.getSupportedFocusModes();
 
             //默认使用自动对焦
