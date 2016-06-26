@@ -21,8 +21,10 @@ import java.util.List;
 
 import info.dourok.android.demo.R;
 
+import static info.dourok.android.demo.camera2.Gallery.KEY_PICTURES;
+
 public class ImagePreviewActivity extends AppCompatActivity {
-    public static final String KEY_PICTURES = "KEY_PICTURES";
+
     public static final String KEY_POSITION = "KEY_POSITION";
     public static final int RESULT_MODIFIED = RESULT_FIRST_USER + 1;
     private static final String KEY_MODIFIED = "KEY_MODIFIED";
