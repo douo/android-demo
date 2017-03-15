@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/fix"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignBaseline="@+id/lat"
+        android:layout_alignBottom="@+id/lat"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:padding="16dp"
+        android:textIsSelectable="true"
+        tools:text="No Fix" />
+
+    <TextView
+        android:id="@+id/lat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_toEndOf="@+id/fix"
+        android:layout_toRightOf="@+id/fix"
+        android:padding="16dp"
+        android:textIsSelectable="true"
+        tools:text="39.889615" />
+
+    <TextView
+        android:id="@+id/lon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/lat"
+        android:layout_alignLeft="@+id/lat"
+        android:layout_alignRight="@+id/lat"
+        android:layout_alignStart="@+id/lat"
+        android:layout_below="@id/lat"
+        android:layout_marginBottom="8dp"
+        android:padding="16dp"
+        android:textIsSelectable="true"
+        tools:text="116.461972" />
+
+</RelativeLayout>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/reset_agps"
+        android:icon="@drawable/action_search"
+        android:title="@string/reset_agps"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/satellites_filter"
+        android:icon="@drawable/action_search"
+        android:title="@string/satellites_filter"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/enable_compass"
+        android:icon="@drawable/action_search"
+        android:title="@string/enable_compass"
+        android:checkable="true"
+        app:showAsAction="never"/>
+
+</menu>

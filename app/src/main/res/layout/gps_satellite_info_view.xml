@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <TextView
+        android:id="@+id/label_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/label_type" />
+
+    <TextView
+        android:id="@+id/type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/label_type"
+        android:text="Svid" />
+
+    <TextView
+        android:id="@+id/label_svid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/lon"
+        android:text="@string/label_svid" />
+
+    <TextView
+        android:id="@+id/svid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/svid"
+        android:text="Svid" />
+
+
+    <TextView
+        android:id="@+id/label_azimuth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/label_svid"
+        android:text="@string/label_azimuth" />
+
+    <TextView
+        android:id="@+id/azimuth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/label_azimuth"
+        android:text="方位角" />
+
+    <TextView
+        android:id="@+id/label_elevation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/label_azimuth"
+        android:text="@string/label_elevation" />
+
+    <TextView
+        android:id="@+id/elevation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/label_elevation"
+        android:text="高度角" />
+
+    <TextView
+        android:id="@+id/label_used_in_fix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/label_elevation"
+        android:text="@string/label_used_in_fix" />
+
+    <TextView
+        android:id="@+id/used_in_fix"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/label_used_in_fix"
+        android:text="是" />
+
+    <TextView
+        android:id="@+id/label_has_almanac"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/label_used_in_fix"
+        android:text="@string/label_has_almanac" />
+
+    <TextView
+        android:id="@+id/has_almanac"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/label_used_in_fix"
+        android:text="是" />
+
+    <TextView
+        android:id="@+id/label_has_ephemeris"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/label_has_almanac"
+        android:text="@string/label_has_ephemeris" />
+
+    <TextView
+        android:id="@+id/has_ephemeris"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/label_used_in_fix"
+        android:text="是" />
+
+
+</RelativeLayout>
