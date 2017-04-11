@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="@color/cardview_dark_background"
+    android:orientation="vertical"
+    android:transitionName="fix_info">
 
     <TextView
         android:id="@+id/fix"
@@ -17,6 +19,7 @@
         android:background="#FFA00F00"
         android:padding="16dp"
         android:textIsSelectable="true"
+        android:transitionName="fix"
         tools:text="No Fix" />
 
     <TextView
@@ -34,12 +37,12 @@
         android:id="@+id/lon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lat"
         android:padding="16dp"
         android:textIsSelectable="true"
-        tools:text="116.461972"
-        android:layout_below="@+id/lat"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        tools:text="116.461972" />
 
     <TextView
         android:id="@+id/label_alt"

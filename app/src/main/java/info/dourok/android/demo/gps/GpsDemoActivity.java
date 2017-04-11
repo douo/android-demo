@@ -1,6 +1,7 @@
 package info.dourok.android.demo.gps;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,20 +12,28 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.location.OnNmeaMessageListener;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.transition.Fade;
 import android.support.transition.Scene;
-import android.support.transition.Transition;
-import android.support.transition.TransitionManager;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.transition.ChangeBounds;
+import android.transition.ChangeImageTransform;
+import android.transition.ChangeTransform;
+import android.transition.Fade;
+import android.transition.Slide;
+import android.transition.Transition;
+import android.transition.TransitionSet;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.Locale;
@@ -49,17 +58,12 @@ public class GpsDemoActivity extends AppCompatActivity {
     SatellitesView mSatellitesView;
 
     LocationManager mLocationManager;
-    private Scene scene2;
-//    private Scene scene1;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gps_demo);
         ButterKnife.bind(this);
-        scene2 = Scene.getSceneForLayout((ViewGroup) findViewById(R.id.fix_info_container), R.layout.gps_info_view, this);
-//        TransitionManager.go(scene2);
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -98,12 +102,17 @@ public class GpsDemoActivity extends AppCompatActivity {
         mLocationManager.sendExtraCommand(LocationManager.GPS_PROVIDER, "delete_aiding_data", null);
     }
 
+    private void xtraInjection() {
+        mLocationManager.sendExtraCommand(LocationManager.GPS_PROVIDER, "force_xtra_injection", null);
+    }
+
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
         startLocation();
     }
 
 
+    @TargetApi(Build.VERSION_CODES.N)
     public void startLocation() {
         if (checkPermission() && checkProvider()) {
             LocationListener locationListener = new LocationListener() {
@@ -178,7 +187,22 @@ public class GpsDemoActivity extends AppCompatActivity {
 //            }
 //        });
 
+            mLocationManager.addNmeaListener(new OnNmeaMessageListener() {
+                long firstTimestamp = -1;
+                int count;
 
+                @Override
+                public void onNmeaMessage(String message, long timestamp) {
+                    if (firstTimestamp == -1) {
+                        firstTimestamp = timestamp;
+                    }
+                    count++;
+                    Log.d(TAG, message);
+                    if (timestamp != firstTimestamp) {
+                        Log.d(TAG, "rate:" + (count * 1000 / (timestamp - firstTimestamp)) + "sen/s");
+                    }
+                }
+            });
 //        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
 //        locationManager.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0,
@@ -189,6 +213,10 @@ public class GpsDemoActivity extends AppCompatActivity {
     }
 
     private void makeUseOfNewLocation(final Location location) {
+        if (location == null) {
+            Log.w(TAG, "location is null");
+            return;
+        }
         if (location.getProvider().equals(LocationManager.GPS_PROVIDER)) {
             if (location.hasAltitude()) {
                 mFix.setText("3D Fix");
@@ -203,15 +231,44 @@ public class GpsDemoActivity extends AppCompatActivity {
         mLat.setText(String.format(Locale.CHINA, "%s", location.getLatitude()));
         mLon.setText(String.format(Locale.CHINA, "%s", location.getLongitude()));
 
+        FixInfoFragment f = (FixInfoFragment) getSupportFragmentManager().findFragmentByTag("FixInfoFragment");
+        if (f != null) {
+            f.setLocation(location);
+            f.setFixStatus(mFix.getText().toString());
+        }
+        ViewCompat.setTransitionName(mFix, "fix");
+        findViewById(R.id.fix_info_container).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FixInfoFragment details = FixInfoFragment.newInstance(location, mFix.getText().toString());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    Transition transition = new Slide();
+                    transition.excludeTarget(R.id.fix, true);
+                    //details.setSharedElementEnterTransition(new Slide());
+                    details.setEnterTransition(transition);
+                    details.setSharedElementEnterTransition(new DetailsTransition());
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .addSharedElement(findViewById(R.id.fix), "fix")
+                            .add(R.id.fragment_container, details)
+                            .addToBackStack(null)
+                            .commit();
+                }
+
+            }
+        });
+
     }
 
-    @OnClick(R.id.fix_info_container)
-    public void onTransition() {
-        transition();
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    public class DetailsTransition extends TransitionSet {
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        public DetailsTransition() {
+            setOrdering(ORDERING_TOGETHER);
+            addTransition(new ChangeBounds()).
+                    addTransition(new ChangeTransform()).
+                    addTransition(new ChangeImageTransform());
+        }
     }
 
-    private void transition() {
-        Log.d(TAG, "transition");
-        TransitionManager.go(scene2);
-    }
 }

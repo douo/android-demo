@@ -92,6 +92,12 @@ public class GnssUtils {
     private static final int BEIDOU_SVID_OFFSET = 200;
     private static final int SBAS_SVID_OFFSET = -87;
 
+    /**
+     * copy from {@link android.location.GpsSatellite}
+     * @param svid
+     * @param constellationType
+     * @return
+     */
     public static int svidToPrn(int svid, int constellationType) {
         int prn = svid;
 

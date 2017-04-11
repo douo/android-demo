@@ -131,7 +131,7 @@
     <string name="satellites_filter">卫星过滤</string>
     <string name="enable_compass">开启指南针</string>
     <string name="label_type">类型：</string>
-    <string name="label_svid">label_svid</string>
+    <string name="label_svid">Prn：</string>
     <string name="label_azimuth">方位角：</string>
     <string name="label_elevation">高度角：</string>
     <string name="label_used_in_fix">参与定位：</string>
