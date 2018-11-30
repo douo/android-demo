@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scene_2"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/text_3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/text_1"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/text_1"
+        android:text="文本三"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:transitionName="text" />
+
+    <TextView
+        android:id="@+id/text_1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="文本一2"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+</RelativeLayout>
